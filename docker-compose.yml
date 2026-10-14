@@ -58,10 +58,11 @@ services:
     depends_on:
       - postgres
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "7233"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 7233"]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   # 6. Temporal Web UI
   temporal-ui:
@@ -75,7 +76,7 @@ services:
     depends_on:
       - temporal
 
-  # 7. Service Temporal Worker (Opsional: Jika ingin dijalankan di Docker)
+  # 7. Service Temporal Worker
   worker:
     build:
       context: .
