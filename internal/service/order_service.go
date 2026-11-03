@@ -12,8 +12,8 @@ import (
 )
 
 type OrderService interface {
-	CreateOrder(ctx context.Context, req dto.CreateOrderRequest) (*entity.Order, error)
-	GetOrder(ctx context.Context, id int64) (*entity.Order, error)
+	CreateOrder(ctx context.Context, userID int64, req dto.CreateOrderRequest) (*entity.Order, error)
+	GetOrder(ctx context.Context, userID, id int64) (*entity.Order, error)
 }
 
 type orderService struct {
@@ -34,7 +34,7 @@ func NewOrderService(
 	}
 }
 
-func (s *orderService) CreateOrder(ctx context.Context, req dto.CreateOrderRequest) (*entity.Order, error) {
+func (s *orderService) CreateOrder(ctx context.Context, userID int64, req dto.CreateOrderRequest) (*entity.Order, error) {
 	var totalAmount float64
 	var orderItems []entity.OrderItem
 
@@ -57,7 +57,7 @@ func (s *orderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 	}
 
 	order := &entity.Order{
-		UserID:      req.UserID,
+		UserID:      userID,
 		TotalAmount: totalAmount,
 		Status:      "PENDING",
 	}
@@ -81,6 +81,13 @@ func (s *orderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 	return order, nil
 }
 
-func (s *orderService) GetOrder(ctx context.Context, id int64) (*entity.Order, error) {
-	return s.orderRepo.GetByID(ctx, id)
+func (s *orderService) GetOrder(ctx context.Context, userID, id int64) (*entity.Order, error) {
+	order, err := s.orderRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if order.UserID != userID {
+		return nil, fmt.Errorf("pesanan tidak ditemukan")
+	}
+	return order, nil
 }

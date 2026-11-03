@@ -26,7 +26,8 @@ func NewServer(cfg *config.Config, routes []route.Route) *Server {
 
 	// Registrasi seluruh route yang dikirim dari Builder
 	for _, r := range routes {
-		router.Handle(r.Method, r.Path, r.Handler)
+		handlers := append(append([]gin.HandlerFunc{}, r.Middlewares...), r.Handler)
+		router.Handle(r.Method, r.Path, handlers...)
 	}
 
 	return &Server{

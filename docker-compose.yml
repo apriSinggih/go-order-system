@@ -14,6 +14,8 @@ services:
       - REDIS_PORT=6379
       - TEMPORAL_HOST=temporal:7233
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=super-secret-jwt-key-for-go-order-system
+      - JWT_EXPIRY=24h
     depends_on:
       postgres:
         condition: service_started
@@ -145,11 +147,28 @@ services:
       - REDIS_PORT=6379
       - TEMPORAL_HOST=temporal:7233
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=super-secret-jwt-key-for-go-order-system
+      - JWT_EXPIRY=24h
     depends_on:
       postgres:
         condition: service_started
       temporal:
         condition: service_healthy
+      kafka:
+        condition: service_started
+
+  # Service Kafka Consumer (Notification Worker)
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: order_consumer
+    environment:
+      - DB_URL=postgres://postgres:secretpassword@postgres:5432/order_db?sslmode=disable
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      postgres:
+        condition: service_started
       kafka:
         condition: service_started
 

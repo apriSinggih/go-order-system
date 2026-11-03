@@ -6,6 +6,5 @@ type CreateOrderItemRequest struct {
 }
 
 type CreateOrderRequest struct {
-	UserID int64                    `json:"user_id" binding:"required"`
-	Items  []CreateOrderItemRequest `json:"items" binding:"required,dive"`
+	Items []CreateOrderItemRequest `json:"items" binding:"required,dive"`
 }

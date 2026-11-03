@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"go-order-system/internal/http/dto"
+	"go-order-system/internal/http/middleware"
 	"go-order-system/internal/service"
 	"go-order-system/pkg/response"
 
@@ -20,13 +21,19 @@ func NewOrderHandler(orderService service.OrderService) *OrderHandler {
 }
 
 func (h *OrderHandler) Create(c *gin.Context) {
+	userID, ok := middleware.UserID(c)
+	if !ok {
+		response.Error(c, http.StatusUnauthorized, "Pengguna tidak terautentikasi")
+		return
+	}
+
 	var req dto.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	order, err := h.orderService.CreateOrder(c.Request.Context(), req)
+	order, err := h.orderService.CreateOrder(c.Request.Context(), userID, req)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
@@ -36,13 +43,19 @@ func (h *OrderHandler) Create(c *gin.Context) {
 }
 
 func (h *OrderHandler) GetByID(c *gin.Context) {
+	userID, ok := middleware.UserID(c)
+	if !ok {
+		response.Error(c, http.StatusUnauthorized, "Pengguna tidak terautentikasi")
+		return
+	}
+
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, "ID tidak valid")
 		return
 	}
 
-	order, err := h.orderService.GetOrder(c.Request.Context(), id)
+	order, err := h.orderService.GetOrder(c.Request.Context(), userID, id)
 	if err != nil {
 		response.Error(c, http.StatusNotFound, "Pesanan tidak ditemukan")
 		return
