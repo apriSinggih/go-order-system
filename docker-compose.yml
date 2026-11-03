@@ -1,4 +1,27 @@
 services:
+  # 0. Service Aplikasi Go (REST API)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: order_app
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_PORT=8080
+      - DB_URL=postgres://postgres:secretpassword@postgres:5432/order_db?sslmode=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TEMPORAL_HOST=temporal:7233
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      temporal:
+        condition: service_healthy
+
   # 1. PostgreSQL (Database Utama)
   postgres:
     image: postgres:15-alpine
@@ -75,6 +98,39 @@ services:
       TEMPORAL_CORS_ORIGINS: http://localhost:8233
     depends_on:
       - temporal
+
+  # 7. Prometheus (Metrics Scraper)
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: order_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deployments/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    depends_on:
+      - app
+
+  # 8. Grafana (Metrics Visualization)
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: order_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./deployments/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deployments/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
 
   # Service Temporal Worker
   worker:

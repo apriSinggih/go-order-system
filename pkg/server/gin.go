@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"go-order-system/config"
+	"go-order-system/internal/http/middleware"
 	"go-order-system/pkg/route"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,10 @@ type Server struct {
 
 func NewServer(cfg *config.Config, routes []route.Route) *Server {
 	router := gin.Default()
+
+	// Metrics Prometheus & CORS
+	middleware.InitMetrics(router)
+	router.Use(middleware.CORS())
 
 	// Registrasi seluruh route yang dikirim dari Builder
 	for _, r := range routes {
