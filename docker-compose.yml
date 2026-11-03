@@ -76,7 +76,7 @@ services:
     depends_on:
       - temporal
 
-  # 7. Service Temporal Worker
+  # Service Temporal Worker
   worker:
     build:
       context: .
@@ -99,3 +99,5 @@ services:
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:

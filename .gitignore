@@ -1,0 +1,26 @@
+# Executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Output binaries
+bin/
+dist/
+
+# Environment variables
+.env
+
+# Go workspace
+go.work
+
+# IDE & OS Specific
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+#markdown
+*.md
